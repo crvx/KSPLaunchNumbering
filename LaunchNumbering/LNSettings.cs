@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,21 +15,12 @@ namespace LaunchNumbering
 
 		public override int SectionOrder => 1;
 
-		public override string Title => "Vessel Defaults";
+		public override string Title => string.Empty;
 
-		[GameParameters.CustomParameterUI("Numbering Scheme")]
-		public NumberScheme Scheme { get; set; }
-		[GameParameters.CustomParameterUI("Show Bloc numbers")]
-		public bool ShowBloc { get; set; } = true;
-		[GameParameters.CustomParameterUI("Bloc Numbering Scheme")]
-		public NumberScheme BlocScheme { get; set; } = NumberScheme.Roman;
+		[GameParameters.CustomParameterUI("Use Alternate Skin",
+			toolTip = "If true, uses an alternate skin for the window")]
+		public bool useAltSkin { get; set; } = true;
 
 		public override string DisplaySection => "Launch Numbering";
-
-		public enum NumberScheme
-		{
-			Arabic,
-			Roman
-		}
 	}
 }
