@@ -64,6 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LaunchNumberer.cs" />
+    <Compile Include="LaunchNumberTemplate.cs" />
+    <Compile Include="LaunchNumberTemplateInjector.cs" />
     <Compile Include="LNSettings.cs" />
     <Compile Include="ManageNumbersUI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

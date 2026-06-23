@@ -2,7 +2,7 @@
 
 A small mod to perform automatic numbering of launch vehicles.
 
-This project is a fork of original [KSPLaunchNumbering by Damien-The-Unbeliever](https://github.com/Damien-The-Unbeliever/KSPLaunchNumbering) — a genuinely brilliant idea. Later, [linuxgurugamer](https://github.com/linuxgurugamer/KSPLaunchNumbering) took it further with a more feature-rich version, which is great in many ways too. However, I wasn't quite happy with how the numbering logic worked there, so I decided to roll my own implementation with slightly different approach.
+This project is a fork of the original [KSPLaunchNumbering by Damien-The-Unbeliever](https://github.com/Damien-The-Unbeliever/KSPLaunchNumbering) — a genuinely brilliant idea. Later, [linuxgurugamer](https://github.com/linuxgurugamer/KSPLaunchNumbering) took it further with a more feature-rich version, which is great in many ways too. However, I wasn't quite happy with how the numbering logic worked there, so I decided to roll my own implementation with a slightly different approach.
 
 The core idea is very simple: you put a `[tag]` in your vessel name, and the mod replaces it with a sequential number on each launch. I didn't want to use templates, mindblowing 'blocs', or Roman numerals. It's as simple as pie: just replace `[tag]` with a number.
 
@@ -46,13 +46,33 @@ ComSat-[comsat]#Mun network      => renames to "ComSat-2"
 ComSat-[comsat]#Duna network     => renames to "ComSat-3"
 ```
 
-As mrntioned above the comment is only visible in the editor before launch — once renamed, the vessel name becomes only what comes before `#`.
+As mentioned above, the comment is only visible in the editor before launch — once renamed, the vessel name becomes only what comes before `#`.
 
 **Important:** Because the `#` comment is part of the vessel name in the editor, vessels with different comments are treated as **separate craft files** in the VAB/SPH. For example, `Vessel-[vessel]#Duna` and `Vessel-[vessel]#Minmus` are two different ships in the editor. After rollout, the comment is stripped and both will get sequential names like `Vessel-1` and `Vessel-2`.
 
+### Separable Vessels (Multi-Satellite Launch, Mothership/Lander etc.)
+
+You can set a launch template on any command module (capsule or probe core). When a vessel containing that part separates via decoupler, separator, or undocking, the new vessel is automatically renamed according to the template. Also note that if the template doesn't contain a `[tag]`, the vessel is renamed to the literal template name without any numbering.
+
+In the VAB, right-click a command module. Click **Edit Template**:
+
+![Edit Template button](Images/edittemplate.png)
+
+Enter the desired name (with or without a `[tag]`):
+
+![Edit Template filled](Images/edittemplatefilled.png)
+
+The button then shows the current template: `Edit Template: ComSat-[]`.
+
+**Example:**
+
+Suppose you build a ship named `Apollo [apollo]` and set the template to `LM-[]` on the lander's command module. After launch, depending on current tag counters, the ship may become `Apollo 11`. Decouple the lander, and it automatically renames — for example, to `LM-5`.
+
+**Important:** The template is applied **only once**. After initial separation, the automatic renaming won't trigger again if the separated ship later docks and undocks. 
+
 ## Launch Number Manager
 
-Click the toolbar icon (![icon](GameData/LaunchNumbering/Textures/LaunchNumbering.png)) in VAB, SPH, Flight, Map View, or KSC to open the **Launch Number Manager** window.
+Click the toolbar icon in VAB, SPH, Flight, Map View, or KSC to open the **Launch Number Manager** window.
 
 The window shows all tracked tags and their last launch numbers:
 
@@ -75,7 +95,7 @@ Open the game's settings (ESC => Settings => Game Difficulty) and find the **Lau
 
 Numbering data is persisted in your save file. If you uninstall the mod, any previously numbered vessels keep their names.
 
-**Note:** This mod's save format is **not compatible** with the original mod by Damien-The-Unbeliever or the fork by linuxgurugamer. Do not switch between them mid-save — numbering data will not carry over.
+**Important:** This mod's save format is **not compatible** with the original mod by Damien-The-Unbeliever or the fork by linuxgurugamer. Do not switch between them mid-save — numbering data will not carry over.
 
 ## Installation
 
@@ -97,8 +117,8 @@ Numbering data is persisted in your save file. If you uninstall the mod, any pre
 
 ### Prerequisites
 
-- [.NET Framework 3.5 SDK](https://dotnet.microsoft.com/download/dotnet-framework/net35) (Windows) or [Mono](https://www.mono-project.com/) (Linux)
-- [MSBuild](https://github.com/dotnet/msbuild) (included with Visual Studio on Windows, or with Mono on Linux)
+- .NET Framework SDK or Mono
+- MSBuild
 - A KSP installation with `KSP_Data/Managed/` containing the required assemblies
 
 ### Setup
