@@ -4,7 +4,7 @@ A small mod to perform automatic numbering of launch vehicles.
 
 This project is a fork of the original [KSPLaunchNumbering by Damien-The-Unbeliever](https://github.com/Damien-The-Unbeliever/KSPLaunchNumbering) — a genuinely brilliant idea. Later, [linuxgurugamer](https://github.com/linuxgurugamer/KSPLaunchNumbering) took it further with a more feature-rich version, which is great in many ways too. However, I wasn't quite happy with how the numbering logic worked there, so I decided to roll my own implementation with a slightly different approach.
 
-The core idea is very simple: you put a `[tag]` in your vessel name, and the mod replaces it with a sequential number on each launch. I didn't want to use templates, mindblowing 'blocs', or Roman numerals. It's as simple as pie: just replace `[tag]` with a number.
+The core idea is very simple: you put a `[tag]` in your vessel name, and the mod replaces it with a sequential number on each launch. I didn't want to use complex templates, mindblowing 'blocs', or Roman numerals. It's as simple as pie: just replace `[tag]` with a number.
 
 ## How It Works
 
@@ -69,6 +69,26 @@ The button then shows the current template: `Edit Template: ComSat-[]`.
 Suppose you build a ship named `Apollo [apollo]` and set the template to `LM-[]` on the lander's command module. After launch, depending on current tag counters, the ship may become `Apollo 11`. Decouple the lander, and it automatically renames — for example, to `LM-5`.
 
 **Important:** The template is applied **only once**. After initial separation, the automatic renaming won't trigger again if the separated ship later docks and undocks. 
+
+### Multi-Tag Support
+
+You can use multiple `[tag]` placeholders in a vessel name or template. Each tag gets its own independent counter.
+
+**Example:**
+
+```
+Duna-[duna]-[dunalander]   => resolves to "Duna-5-1"
+Mun-[base]-[rover]-[drill] => resolves to "Mun-2-1-3"
+```
+
+**Note:** Multi-tag requires named tags (`[sometag]`). Empty `[]` tags still work but don't combine with other tags in the same name — they use the entire vessel name as the key, which defeats the purpose of having separate counters. If you need multiple counters, always use named tags.
+
+When a subvessel separates, tags already used in the parent vessel keep the exact numbers that were assigned at the parent's launch — only new tags increment the global counter. This matters even if later launches have advanced the counter:
+
+1. Launch `Duna-[duna]` → becomes `Duna-5` (global `duna` = 5)
+2. Launch another `Duna-[duna]` → becomes `Duna-6` (global `duna` = 6)
+3. Eject lander from the **first** ship (template `Duna-[duna]-[dunalander]`) → becomes `Duna-5-1` — inherits `duna=5` from the parent's launch, not `7`. Only `dunalander` gets a fresh number.
+4. The second lander ejected from the same ship → `Duna-5-2`, and so on.
 
 ## Launch Number Manager
 

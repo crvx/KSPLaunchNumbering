@@ -1,7 +1,6 @@
 using KSP.UI.Screens;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -91,10 +90,15 @@ namespace LaunchNumbering
 				if (template == null || template.used || string.IsNullOrEmpty(template.templateName))
 					continue;
 
-				string newName = ProcessTag(template.templateName) ?? template.templateName;
+				var parentData = template.GetResolvedData();
+
+				string newName = ProcessTags(template.templateName, parentData, out var resolvedData) ?? template.templateName;
 
 				v.vesselName = newName;
 				template.used = true;
+
+				if (resolvedData != null && resolvedData.Count > 0)
+					template.SetResolvedData(resolvedData);
 
 				ScreenMessages.PostScreenMessage("New vessel: " + newName, MessageDisplayLength, ScreenMessageStyle.UPPER_CENTER);
 				break;
@@ -109,38 +113,69 @@ namespace LaunchNumbering
 			if (vname.Contains("#"))
 				vname = Regex.Replace(vname, "#.*$", "");
 
-			string newName = ProcessTag(vname);
+			string newName = ProcessTags(vname, null, out var resolvedData);
 			if (newName == null)
 				return;
 
 			v.vesselName = newName;
+
+			if (resolvedData != null && resolvedData.Count > 0)
+			{
+				foreach (var part in v.parts)
+				{
+					var t = part.GetComponent<LaunchNumberTemplate>();
+					if (t != null)
+						t.SetResolvedData(resolvedData);
+				}
+			}
+
 			ScreenMessages.PostScreenMessage("Launch: " + newName, MessageDisplayLength, ScreenMessageStyle.UPPER_CENTER);
 		}
 
-		private string ProcessTag(string input)
+		private string ProcessTags(string input, Dictionary<string, int> parentData, out Dictionary<string, int> resolvedData)
 		{
-			string pattern = "\\[(\\w*)\\]";
-			Match m = Regex.Match(input, pattern);
-			if (!m.Success)
+			string pattern = @"\[(\w*)\]";
+			MatchCollection matches = Regex.Matches(input, pattern);
+			if (matches.Count == 0)
+			{
+				resolvedData = null;
 				return null;
-
-			string key = m.Groups[1].ToString();
-			if (key == "")
-				key = input;
-
-			int number;
-			if (_numbering.ContainsKey(key))
-			{
-				number = _numbering[key] + 1;
-				_numbering[key] = number;
-			}
-			else
-			{
-				_numbering.Add(key, 1);
-				number = 1;
 			}
 
-			return Regex.Replace(input, pattern, number.ToString());
+			var tagToNumber = new Dictionary<string, int>();
+
+			foreach (Match m in matches)
+			{
+				string tag = m.Groups[1].Value;
+				if (tag == "")
+					tag = input;
+
+				if (tagToNumber.ContainsKey(tag))
+					continue;
+
+				int number;
+				if (parentData == null || !parentData.TryGetValue(tag, out number))
+				{
+					if (_numbering.ContainsKey(tag))
+					{
+						number = _numbering[tag] + 1;
+						_numbering[tag] = number;
+					}
+					else
+					{
+						_numbering.Add(tag, 1);
+						number = 1;
+					}
+				}
+				tagToNumber[tag] = number;
+			}
+
+			string result = input;
+			foreach (var kvp in tagToNumber)
+				result = Regex.Replace(result, @"\[" + kvp.Key + @"\]", kvp.Value.ToString());
+
+			resolvedData = tagToNumber;
+			return result;
 		}
 	}
 }
