@@ -172,7 +172,12 @@ namespace LaunchNumbering
 
 			string result = input;
 			foreach (var kvp in tagToNumber)
-				result = Regex.Replace(result, @"\[" + kvp.Key + @"\]", kvp.Value.ToString());
+			{
+				if (kvp.Key == input)
+					result = Regex.Replace(result, @"\[\]", kvp.Value.ToString());
+				else
+					result = Regex.Replace(result, @"\[" + kvp.Key + @"\]", kvp.Value.ToString());
+			}
 
 			resolvedData = tagToNumber;
 			return result;
